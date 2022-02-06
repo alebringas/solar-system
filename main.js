@@ -1,0 +1,198 @@
+import * as THREE from "https://cdn.skypack.dev/pin/three@v0.137.5-HJEdoVYPhjkiJWkt6XIa/mode=imports,min/optimized/three.js";
+import { DragControls } from "https://cdn.skypack.dev/pin/three@v0.137.5-HJEdoVYPhjkiJWkt6XIa/mode=imports,min/unoptimized/examples/jsm/controls/DragControls.js";
+import { OrbitControls } from "https://cdn.skypack.dev/pin/three@v0.137.5-HJEdoVYPhjkiJWkt6XIa/mode=imports,min/unoptimized/examples/jsm/controls/OrbitControls.js";
+import { TrackballControls } from 'https://cdn.skypack.dev/pin/three@v0.137.5-HJEdoVYPhjkiJWkt6XIa/mode=imports,min/unoptimized/examples/jsm/controls/TrackballControls.js';
+
+const canvas = document.querySelector('#scene-canvas');
+const renderer = new THREE.WebGLRenderer({canvas});
+renderer.physicallyCorrectLights = true;
+
+
+// document.addEventListener( 'click', onClick );
+
+
+
+// function onClick( event ) {
+    
+    
+//     mouseX = event.clientX;
+//     mouseY = event.clientY ;
+    
+// //    mouseX = ( event.clientX / window.innerWidth ) * 2 - 1;
+// //    mouseY = - ( event.clientY / window.innerHeight ) * 2 + 1;
+
+// }
+
+// Evento de zoom (ruedita)
+//canvas.zoom = function( s ) 
+//{
+    //    transZ *= s/canvas.height + 1;
+    //    UpdateProjectionMatrix();
+    //    DrawScene();
+    //}
+    //canvas.onwheel = function() { canvas.zoom(0.3*event.deltaY); }
+    
+
+// Our Javascript will go here.
+const camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1000 );
+camera.position.z = 10;
+
+const scene = new THREE.Scene();
+let objects = [];
+
+
+const axesHelper = new THREE.AxesHelper( 5 );
+scene.add( axesHelper );
+
+// ambient light
+var ambientLight = new THREE.AmbientLight ( 0xffffff, 0.2)
+scene.add( ambientLight )
+
+// point light
+const lightIntensity = 1;
+var pointLight = new THREE.PointLight( 0xffffff );
+pointLight.power = lightIntensity * 800;
+// pointLight.castShadow = true;
+pointLight.decay = 2;
+pointLight.distance = Infinity;
+pointLight.position.set( 0, 0, 0);
+scene.add( pointLight );
+
+
+
+// camera control
+// *** Orbit
+const controls = new OrbitControls(camera, canvas);
+controls.target.set(0, 0, 0);
+controls.update();
+
+// *** Trackball
+// const controls = new TrackballControls( camera, canvas );
+// controls.rotateSpeed = 1.0;
+// controls.zoomSpeed = 1.2;
+// controls.panSpeed = 0.8;
+// controls.keys = [ 'KeyA', 'KeyS', 'KeyD' ];
+
+
+
+
+
+
+
+
+
+
+const solarSystem = new THREE.Object3D();
+scene.add(solarSystem);
+objects.push(solarSystem);
+
+// TODO: glowy sun: https://stackoverflow.com/a/50958608 
+const sun = newSun(2, 0xffff00, 0);
+solarSystem.add(sun);
+objects.push(sun);
+
+const earth = newPlanet(1, 0x0000ff, -4);
+solarSystem.add(earth);
+objects.push(earth);
+
+function newSun(radius, color, positionX) {
+    const geometry = new THREE.SphereGeometry(radius);
+    const material = new THREE.MeshLambertMaterial( { color: color, emissive:color, emissiveIntensity: lightIntensity} );
+    
+    const sphereElement = new THREE.Mesh( geometry, material );    
+    sphereElement.position.x = positionX;
+    return sphereElement;
+}
+function newPlanet(radius, color, positionX, emissive) {
+    const geometry = new THREE.SphereGeometry(radius);
+    const material = new THREE.MeshLambertMaterial( { color: color} );
+    
+    const sphereElement = new THREE.Mesh( geometry, material );    
+    sphereElement.position.x = positionX;
+    return sphereElement;
+}
+
+
+// const curve = new THREE.EllipseCurve(
+// 	0.5,  0.5,            // ax, aY
+// 	3, 5,           // xRadius, yRadius
+// 	0,  2 * Math.PI,  // aStartAngle, aEndAngle
+// 	false,            // aClockwise
+// 	180                 // aRotation
+// );
+
+// const points = curve.getPoints( 50 );
+// const ellgeometry = new THREE.BufferGeometry().setFromPoints( points );
+
+// const ellmaterial = new THREE.LineBasicMaterial( { color : 0xff0000 } );
+
+// // Create the final object to add to the scene
+// const ellipse = new THREE.Line( ellgeometry, ellmaterial );
+// scene.add(ellipse);
+
+
+
+
+//const controls = new DragControls([sun, earth], camera, renderer.domElement);
+//controls.addEventListener("drag", function(event) {
+//    event.object.position.set(mouseX,mouseY,event.object.position.y);
+//    renderer.render(scene, camera);  
+//})
+
+//window.addEventListener( 'resize', onWindowResize, false );
+
+
+// function onWindowResize( event ) {
+// // https://stackoverflow.com/questions/47184264/threejs-calculating-fov-for-perspective-camera-after-browser-window-resize?rq=1
+//     let oldHeight = camera.viewportHeight;
+//     let oldWidth = camera.viewportWidth;
+//     let newHeight = window.innerHeight;
+//     let newWidth = window.innerWidth;
+//     camera.viewportHeight = newHeight;
+//     camera.viewportWidth = newWidth;
+//     camera.aspectRatio = newWidth / newHeight;
+//     let oldRadFOV = camera.vertFOV * Math.PI/180;
+//     let newRadVertFOV = 2*Math.atan( Math.tan(oldRadFOV/2) * newHeight/oldHeight);
+//     camera.vertFOV = newRadVertFOV * 180/Math.PI;
+
+//     let radVertFOV = camera.vertFOV * Math.PI/180;
+//     let radHorizFOV = 2 * Math.atan( Math.tan(radVertFOV/2) * camera.aspectRatio);
+//     let horizFOV = radHorizFOV * 180/Math.PI;
+
+//     camera.horizFOV = horizFOV;
+//     camera.aspect = camera.aspectRatio;
+//     camera.updateProjectionMatrix();
+//     renderer.setSize( window.innerWidth, window.innerHeight );
+    
+// }
+
+function resizeRendererToDisplaySize(renderer) {
+    const canvas = renderer.domElement;
+    const width = canvas.clientWidth;
+    const height = canvas.clientHeight;
+    const needResize = canvas.width !== width || canvas.height !== height;
+    if (needResize) {
+        renderer.setSize(width, height, false);
+    }
+    return needResize;
+}
+
+function render (time) {
+    time *= 0.001 // time: miliseconds -> seconds
+    
+    if (resizeRendererToDisplaySize(renderer)) {
+        const canvas = renderer.domElement;
+        camera.aspect = canvas.clientWidth / canvas.clientHeight;
+        camera.updateProjectionMatrix();
+    }
+    
+    objects.forEach(obj => obj.rotation.z = time*0.5);
+    
+    // controls.handleResize();
+    // controls.update();
+
+    renderer.render(scene, camera);
+    requestAnimationFrame(render);
+
+}
+requestAnimationFrame(render);
