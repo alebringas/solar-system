@@ -69,7 +69,7 @@ input[type=range] {
 @media (orientation: landscape) {
 	#canvas-div {
 		display: inline-block;
-		width:  calc(100% - 14em);
+		width:  calc(100% - 15em);
 		height: 100%;
 	}
 	#controls-div {
@@ -89,7 +89,7 @@ input[type=range] {
 @media (orientation: portrait) {
 	#canvas-div {
 		width:  100%;
-		height: calc(100% - 14em);
+		height: calc(100% - 15em);
 	}
 	#controls-div {
 		width:  100%;

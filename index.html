@@ -5,10 +5,18 @@
 		<title>My universe</title>
 		<!-- estilo-->
 		<link href="style.css" rel="stylesheet">
+        <script type="module" src="main.js"></script>
 	</head>
 	<body>
-        <canvas id='scene-canvas'></canvas>
+        <div id="canvas-div">
+            <canvas id='scene-canvas'></canvas>
+        </div>
+        <div id="controls-div">
+            <div id="controls">
+                <div class="control-group">
+                    <div class="control">Modelo:<br/><input id="obj" type="file" accept=".obj"/></div>
+                </div>
+            </div>
+        </div>
 	</body>
-    <!-- <script type="module" src="responsive.js"></script> -->
-    <script type="module" src="main.js"></script>
 </html>

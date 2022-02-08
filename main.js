@@ -2,6 +2,9 @@ import * as THREE from "https://cdn.skypack.dev/pin/three@v0.137.5-HJEdoVYPhjkiJ
 import { DragControls } from "https://cdn.skypack.dev/pin/three@v0.137.5-HJEdoVYPhjkiJWkt6XIa/mode=imports,min/unoptimized/examples/jsm/controls/DragControls.js";
 import { OrbitControls } from "https://cdn.skypack.dev/pin/three@v0.137.5-HJEdoVYPhjkiJWkt6XIa/mode=imports,min/unoptimized/examples/jsm/controls/OrbitControls.js";
 import { TrackballControls } from 'https://cdn.skypack.dev/pin/three@v0.137.5-HJEdoVYPhjkiJWkt6XIa/mode=imports,min/unoptimized/examples/jsm/controls/TrackballControls.js';
+import { OBJLoader } from 'https://cdn.skypack.dev/pin/three@v0.137.5-HJEdoVYPhjkiJWkt6XIa/mode=imports,min/unoptimized/examples/jsm/loaders/OBJLoader.js';
+
+
 
 const canvas = document.querySelector('#scene-canvas');
 const renderer = new THREE.WebGLRenderer({canvas});
@@ -103,7 +106,7 @@ function newSun(radius, color, positionX) {
     sphereElement.position.x = positionX;
     return sphereElement;
 }
-function newPlanet(radius, color, positionX, emissive) {
+function newPlanet(radius, color, positionX) {
     const geometry = new THREE.SphereGeometry(radius);
     const material = new THREE.MeshLambertMaterial( { color: color} );
     
@@ -196,3 +199,33 @@ function render (time) {
 
 }
 requestAnimationFrame(render);
+
+
+let modelLoadDiv = document.getElementById('obj');
+modelLoadDiv.addEventListener("change", LoadObj );
+
+const objLoader = new OBJLoader();
+
+function LoadObj( event ) {
+    
+    if ( modelLoadDiv.files && modelLoadDiv.files[0] ) {
+        objLoader.load(
+            modelLoadDiv.files[0].name,
+            // called when object is loaded
+            function (object) {
+                object.position.x = 6;
+                object.scale.set(0.5, 0.5, 0.5);
+                objects.push(object);
+                solarSystem.add(object);
+            },
+            // called when loading is in progress
+            function ( xhr ) {
+                console.log( ( xhr.loaded / xhr.total * 100 ) + '% loaded' );
+            },
+            // called when loading has errors
+            function ( error ) {
+                console.log( 'An error happened' );
+            }
+        );
+    }
+}
