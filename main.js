@@ -5,65 +5,40 @@ import { TrackballControls } from 'https://cdn.skypack.dev/pin/three@v0.137.5-HJ
 import { OBJLoader } from 'https://cdn.skypack.dev/pin/three@v0.137.5-HJEdoVYPhjkiJWkt6XIa/mode=imports,min/unoptimized/examples/jsm/loaders/OBJLoader.js';
 
 
-
 const canvas = document.querySelector('#scene-canvas');
 const renderer = new THREE.WebGLRenderer({canvas});
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 renderer.physicallyCorrectLights = true;
 
 
-// document.addEventListener( 'click', onClick );
-
-
-
-// function onClick( event ) {
-    
-    
-//     mouseX = event.clientX;
-//     mouseY = event.clientY ;
-    
-// //    mouseX = ( event.clientX / window.innerWidth ) * 2 - 1;
-// //    mouseY = - ( event.clientY / window.innerHeight ) * 2 + 1;
-
-// }
-
-// Evento de zoom (ruedita)
-//canvas.zoom = function( s ) 
-//{
-    //    transZ *= s/canvas.height + 1;
-    //    UpdateProjectionMatrix();
-    //    DrawScene();
-    //}
-    //canvas.onwheel = function() { canvas.zoom(0.3*event.deltaY); }
-    
-
-// Our Javascript will go here.
 const camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1000 );
 camera.position.z = 10;
 
 const scene = new THREE.Scene();
 let objects = [];
 
-
 const axesHelper = new THREE.AxesHelper( 5 );
 scene.add( axesHelper );
 
 // ambient light
-var ambientLight = new THREE.AmbientLight ( 0xffffff, 0.2)
+var ambientLight = new THREE.AmbientLight ( 0xffffff, 0.5)
 scene.add( ambientLight )
 
-// point light
 const lightIntensity = 1;
-var pointLight = new THREE.PointLight( 0xffffff );
-pointLight.power = lightIntensity * 800;
-// pointLight.castShadow = true;
-pointLight.decay = 2;
-pointLight.distance = Infinity;
-pointLight.position.set( 0, 0, 0);
-scene.add( pointLight );
+const light = newPointLight();
 
+function newPointLight() {
+    const light = new THREE.PointLight( 0xffffff, 1);
+    light.power = 800*lightIntensity;
+    light.castShadow = true; 
 
+    light.shadow.mapSize.width = 2048;
+    light.shadow.mapSize.height = 2048;
+    return light;
+}
 
-// camera control
+// control de camara
 // *** Orbit
 const controls = new OrbitControls(camera, canvas);
 controls.target.set(0, 0, 0);
@@ -76,15 +51,6 @@ controls.update();
 // controls.panSpeed = 0.8;
 // controls.keys = [ 'KeyA', 'KeyS', 'KeyD' ];
 
-
-
-
-
-
-
-
-
-
 const solarSystem = new THREE.Object3D();
 scene.add(solarSystem);
 objects.push(solarSystem);
@@ -93,6 +59,7 @@ objects.push(solarSystem);
 const sun = newSun(2, 0xffff00, 0);
 solarSystem.add(sun);
 objects.push(sun);
+sun.add(light);
 
 const earth = newPlanet(1, 0x0000ff, -4);
 solarSystem.add(earth);
@@ -106,12 +73,15 @@ function newSun(radius, color, positionX) {
     sphereElement.position.x = positionX;
     return sphereElement;
 }
+
 function newPlanet(radius, color, positionX) {
     const geometry = new THREE.SphereGeometry(radius);
     const material = new THREE.MeshLambertMaterial( { color: color} );
     
     const sphereElement = new THREE.Mesh( geometry, material );    
     sphereElement.position.x = positionX;
+    sphereElement.castShadow = true;
+    sphereElement.receiveShadow = true; 
     return sphereElement;
 }
 
@@ -189,10 +159,7 @@ function render (time) {
         camera.updateProjectionMatrix();
     }
     
-    objects.forEach(obj => obj.rotation.z = time*0.5);
-    
-    // controls.handleResize();
-    // controls.update();
+    objects.forEach(obj => obj.rotation.z = time*0.3);
 
     renderer.render(scene, camera);
     requestAnimationFrame(render);
