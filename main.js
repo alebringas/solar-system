@@ -4,7 +4,8 @@ import { OrbitControls } from "https://cdn.skypack.dev/pin/three@v0.137.5-HJEdoV
 import { TrackballControls } from 'https://cdn.skypack.dev/pin/three@v0.137.5-HJEdoVYPhjkiJWkt6XIa/mode=imports,min/unoptimized/examples/jsm/controls/TrackballControls.js';
 import { OBJLoader } from 'https://cdn.skypack.dev/pin/three@v0.137.5-HJEdoVYPhjkiJWkt6XIa/mode=imports,min/unoptimized/examples/jsm/loaders/OBJLoader.js';
 
-
+let orbitTime = 0;
+let rotationTime = 0;
 const canvas = document.querySelector('#scene-canvas');
 const renderer = new THREE.WebGLRenderer({canvas});
 renderer.shadowMap.enabled = true;
@@ -70,7 +71,7 @@ systemRadius = 5 + 1;
 solarSystem.add(earth);
 
 function newSun(radius, color) {
-    const geometry = new THREE.SphereGeometry(radius, 4, 4);
+    const geometry = new THREE.SphereGeometry(radius, 64, 64);
     const material = new THREE.MeshLambertMaterial( { color: color, emissive:color, emissiveIntensity: lightIntensity} );
     const sun = new THREE.Mesh( geometry, material );    
     rotables.push(sun);
@@ -78,7 +79,7 @@ function newSun(radius, color) {
 }
 
 function newPlanet(radius, color, positionX) {
-    const geometry = new THREE.SphereGeometry(radius, 4, 4);
+    const geometry = new THREE.SphereGeometry(radius, 64, 64);
     geometry.computeBoundingSphere();
     const material = new THREE.MeshLambertMaterial( { color: color} );
     
@@ -132,8 +133,7 @@ function resizeRendererToDisplaySize(renderer) {
     return needResize;
 }
 
-function render (time) {
-    time *= 0.001 // time: miliseconds -> seconds
+function render () {
     
     if (resizeRendererToDisplaySize(renderer)) {
         const canvas = renderer.domElement;
@@ -142,13 +142,15 @@ function render (time) {
     }
     
     if (shouldRotate) {
-        rotables.forEach(rotatable => rotatable.rotation.z = time*0.3);
+        rotationTime += 0.1;
+        rotables.forEach(rotatable => rotatable.rotation.z = rotationTime*0.2);
     }
     if (shouldOrbit) {
+        orbitTime += 0.05;
         for ( var i = 0; i < planets.length; i++ ) {
             let speedFactor = 1 / (planets[i].geometry.boundingSphere.radius + orbits[i]);
-            planets[i].position.x = Math.sin(speedFactor * time) * orbits[i];
-            planets[i].position.y = Math.cos(speedFactor * time) * orbits[i];
+            planets[i].position.x = Math.sin(speedFactor * orbitTime) * orbits[i];
+            planets[i].position.y = Math.cos(speedFactor * orbitTime) * orbits[i];
         }
     }
     renderer.render(scene, camera);
@@ -217,5 +219,5 @@ function SetShouldRotate() {
 let shouldOrbitCheckbox = document.getElementById('should-orbit');
 shouldOrbitCheckbox.addEventListener("click", SetShouldOrbit, false);
 function SetShouldOrbit() {
-    shouldOrbit = shouldOrbitCheckbox.checked;    
+    shouldOrbit = shouldOrbitCheckbox.checked;
 }
