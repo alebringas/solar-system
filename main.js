@@ -11,13 +11,15 @@ renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 renderer.physicallyCorrectLights = true;
 let systemRadius = 0.0;
-
+let shouldRotate = true;
 
 const camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1000 );
 camera.position.z = 10;
 
 const scene = new THREE.Scene();
 let objects = [];
+let rotables = [];
+let planets = [];
 
 const axesHelper = new THREE.AxesHelper( 5 );
 axesHelper.visible = false; // inicia escondido
@@ -70,21 +72,24 @@ solarSystem.add(earth);
 objects.push(earth);
 
 function newSun(radius, color) {
-    const geometry = new THREE.SphereGeometry(radius);
+    const geometry = new THREE.SphereGeometry(radius, 4, 4);
     const material = new THREE.MeshLambertMaterial( { color: color, emissive:color, emissiveIntensity: lightIntensity} );
-    const sphereElement = new THREE.Mesh( geometry, material );    
-    return sphereElement;
+    const sun = new THREE.Mesh( geometry, material );    
+    rotables.push(sun);
+    return sun;
 }
 
 function newPlanet(radius, color, positionX) {
-    const geometry = new THREE.SphereGeometry(radius);
+    const geometry = new THREE.SphereGeometry(radius, 4, 4);
     const material = new THREE.MeshLambertMaterial( { color: color} );
     
-    const sphereElement = new THREE.Mesh( geometry, material );    
-    sphereElement.position.x = positionX;
-    sphereElement.castShadow = true;
-    sphereElement.receiveShadow = true; 
-    return sphereElement;
+    const planet = new THREE.Mesh( geometry, material );    
+    planet.position.x = positionX;
+    planet.castShadow = true;
+    planet.receiveShadow = true; 
+    planets.push(planet);
+    rotables.push(planet);
+    return planet;
 }
 
 
@@ -161,7 +166,9 @@ function render (time) {
         camera.updateProjectionMatrix();
     }
     
-    objects.forEach(obj => obj.rotation.z = time*0.3);
+    if (shouldRotate) {
+        rotables.forEach(rotatable => rotatable.rotation.z = time*0.3);
+    }
 
     renderer.render(scene, camera);
     requestAnimationFrame(render);
@@ -223,4 +230,11 @@ showAxesCheckbox.addEventListener("click", SetShowAxes, false);
 
 function SetShowAxes() {
     axesHelper.visible = showAxesCheckbox.checked;    
+}
+
+let shouldRotateCheckbox = document.getElementById('should-rotate');
+shouldRotateCheckbox.addEventListener("click", SetShouldRotate, false);
+
+function SetShouldRotate() {
+    shouldRotate = shouldRotateCheckbox.checked;    
 }
