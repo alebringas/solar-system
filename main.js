@@ -10,6 +10,7 @@ const renderer = new THREE.WebGLRenderer({canvas});
 renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 renderer.physicallyCorrectLights = true;
+let systemRadius = 0.0;
 
 
 const camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1000 );
@@ -56,21 +57,21 @@ scene.add(solarSystem);
 objects.push(solarSystem);
 
 // TODO: glowy sun: https://stackoverflow.com/a/50958608 
-const sun = newSun(2, 0xffff00, 0);
+const sun = newSun(2, 0xffff00);
+systemRadius = 2;
 solarSystem.add(sun);
 objects.push(sun);
 sun.add(light);
 
-const earth = newPlanet(1, 0x0000ff, -4);
+const earth = newPlanet(1, 0x0000ff, 5);
+systemRadius = 5 + 1;
 solarSystem.add(earth);
 objects.push(earth);
 
-function newSun(radius, color, positionX) {
+function newSun(radius, color) {
     const geometry = new THREE.SphereGeometry(radius);
     const material = new THREE.MeshLambertMaterial( { color: color, emissive:color, emissiveIntensity: lightIntensity} );
-    
     const sphereElement = new THREE.Mesh( geometry, material );    
-    sphereElement.position.x = positionX;
     return sphereElement;
 }
 
@@ -168,31 +169,20 @@ function render (time) {
 requestAnimationFrame(render);
 
 
-let modelLoadDiv = document.getElementById('obj');
-modelLoadDiv.addEventListener("change", LoadObj );
+let newPlanetSubmitButton = document.getElementById('new-planet-submit');
+newPlanetSubmitButton.addEventListener("click", AddNewPlanet, false);
 
-const objLoader = new OBJLoader();
+function AddNewPlanet(event) {
+    let newPlanetRadius = parseInt(document.getElementById("new-planet-radius").value);
+    let newPlanetColor = document.getElementById("new-planet-color").value;
 
-function LoadObj( event ) {
+    let planetPosition = systemRadius + 1.0 + newPlanetRadius;
+    systemRadius = planetPosition + newPlanetRadius;
+
+    let planet = newPlanet(newPlanetRadius, newPlanetColor, planetPosition);
+    planet.position.set(planetPosition, 0, 0);
     
-    if ( modelLoadDiv.files && modelLoadDiv.files[0] ) {
-        objLoader.load(
-            modelLoadDiv.files[0].name,
-            // called when object is loaded
-            function (object) {
-                object.position.x = 6;
-                object.scale.set(0.5, 0.5, 0.5);
-                objects.push(object);
-                solarSystem.add(object);
-            },
-            // called when loading is in progress
-            function ( xhr ) {
-                console.log( ( xhr.loaded / xhr.total * 100 ) + '% loaded' );
-            },
-            // called when loading has errors
-            function ( error ) {
-                console.log( 'An error happened' );
-            }
-        );
-    }
+    // scene.add(planet);
+    solarSystem.add(planet);
+    objects.push(planet);
 }
