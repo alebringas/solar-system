@@ -169,6 +169,36 @@ function render (time) {
 requestAnimationFrame(render);
 
 
+// let modelLoadDiv = document.getElementById('obj');
+// modelLoadDiv.addEventListener("change", LoadObj, false );
+
+// const objLoader = new OBJLoader();
+
+// function LoadObj( event ) {
+    
+//     if ( modelLoadDiv.files && modelLoadDiv.files[0] ) {
+//         objLoader.load(
+//             modelLoadDiv.files[0].name,
+//             // called when object is loaded
+//             function (object) {
+//                 object.position.x = 6;
+//                 object.scale.set(0.5, 0.5, 0.5);
+//                 objects.push(object);
+//                 solarSystem.add(object);
+//             },
+//             // called when loading is in progress
+//             function ( xhr ) {
+//                 console.log( ( xhr.loaded / xhr.total * 100 ) + '% loaded' );
+//             },
+//             // called when loading has errors
+//             function ( error ) {
+//                 console.log( 'An error happened' );
+//             }
+//         );
+//     }
+// }
+
+
 let newPlanetSubmitButton = document.getElementById('new-planet-submit');
 newPlanetSubmitButton.addEventListener("click", AddNewPlanet, false);
 
