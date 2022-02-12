@@ -14,6 +14,7 @@ renderer.physicallyCorrectLights = true;
 let systemRadius = 0.0;
 let shouldRotate = true;
 let shouldOrbit = true;
+let generalSpeed = 1;
 
 const camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1000 );
 camera.position.z = 10;
@@ -142,11 +143,11 @@ function render () {
     }
     
     if (shouldRotate) {
-        rotationTime += 0.1;
+        rotationTime += 0.1 * generalSpeed;
         rotables.forEach(rotatable => rotatable.rotation.z = rotationTime*0.2);
     }
     if (shouldOrbit) {
-        orbitTime += 0.05;
+        orbitTime += 0.05 * generalSpeed;
         for ( var i = 0; i < planets.length; i++ ) {
             let speedFactor = 1 / (planets[i].geometry.boundingSphere.radius + orbits[i]);
             planets[i].position.x = Math.sin(speedFactor * orbitTime) * orbits[i];
@@ -220,4 +221,10 @@ let shouldOrbitCheckbox = document.getElementById('should-orbit');
 shouldOrbitCheckbox.addEventListener("click", SetShouldOrbit, false);
 function SetShouldOrbit() {
     shouldOrbit = shouldOrbitCheckbox.checked;
+}
+
+let speedRangeDiv = document.getElementById('speed');
+speedRangeDiv.addEventListener("input", SetSpeed, false);
+function SetSpeed() {
+    generalSpeed = speedRangeDiv.value;
 }
