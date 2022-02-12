@@ -12,14 +12,15 @@ renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 renderer.physicallyCorrectLights = true;
 let systemRadius = 0.0;
 let shouldRotate = true;
+let shouldOrbit = true;
 
 const camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1000 );
 camera.position.z = 10;
 
 const scene = new THREE.Scene();
-let objects = [];
 let rotables = [];
 let planets = [];
+let orbits = [];
 
 const axesHelper = new THREE.AxesHelper( 5 );
 axesHelper.visible = false; // inicia escondido
@@ -57,19 +58,16 @@ controls.update();
 
 const solarSystem = new THREE.Object3D();
 scene.add(solarSystem);
-objects.push(solarSystem);
 
 // TODO: glowy sun: https://stackoverflow.com/a/50958608 
 const sun = newSun(2, 0xffff00);
 systemRadius = 2;
 solarSystem.add(sun);
-objects.push(sun);
 sun.add(light);
 
 const earth = newPlanet(1, 0x0000ff, 5);
 systemRadius = 5 + 1;
 solarSystem.add(earth);
-objects.push(earth);
 
 function newSun(radius, color) {
     const geometry = new THREE.SphereGeometry(radius, 4, 4);
@@ -81,6 +79,7 @@ function newSun(radius, color) {
 
 function newPlanet(radius, color, positionX) {
     const geometry = new THREE.SphereGeometry(radius, 4, 4);
+    geometry.computeBoundingSphere();
     const material = new THREE.MeshLambertMaterial( { color: color} );
     
     const planet = new THREE.Mesh( geometry, material );    
@@ -88,7 +87,9 @@ function newPlanet(radius, color, positionX) {
     planet.castShadow = true;
     planet.receiveShadow = true; 
     planets.push(planet);
+    orbits.push(positionX);
     rotables.push(planet);
+    scene.add(planet);
     return planet;
 }
 
@@ -111,8 +112,6 @@ function newPlanet(radius, color, positionX) {
 // scene.add(ellipse);
 
 
-
-
 //const controls = new DragControls([sun, earth], camera, renderer.domElement);
 //controls.addEventListener("drag", function(event) {
 //    event.object.position.set(mouseX,mouseY,event.object.position.y);
@@ -121,30 +120,6 @@ function newPlanet(radius, color, positionX) {
 
 //window.addEventListener( 'resize', onWindowResize, false );
 
-
-// function onWindowResize( event ) {
-// // https://stackoverflow.com/questions/47184264/threejs-calculating-fov-for-perspective-camera-after-browser-window-resize?rq=1
-//     let oldHeight = camera.viewportHeight;
-//     let oldWidth = camera.viewportWidth;
-//     let newHeight = window.innerHeight;
-//     let newWidth = window.innerWidth;
-//     camera.viewportHeight = newHeight;
-//     camera.viewportWidth = newWidth;
-//     camera.aspectRatio = newWidth / newHeight;
-//     let oldRadFOV = camera.vertFOV * Math.PI/180;
-//     let newRadVertFOV = 2*Math.atan( Math.tan(oldRadFOV/2) * newHeight/oldHeight);
-//     camera.vertFOV = newRadVertFOV * 180/Math.PI;
-
-//     let radVertFOV = camera.vertFOV * Math.PI/180;
-//     let radHorizFOV = 2 * Math.atan( Math.tan(radVertFOV/2) * camera.aspectRatio);
-//     let horizFOV = radHorizFOV * 180/Math.PI;
-
-//     camera.horizFOV = horizFOV;
-//     camera.aspect = camera.aspectRatio;
-//     camera.updateProjectionMatrix();
-//     renderer.setSize( window.innerWidth, window.innerHeight );
-    
-// }
 
 function resizeRendererToDisplaySize(renderer) {
     const canvas = renderer.domElement;
@@ -169,7 +144,13 @@ function render (time) {
     if (shouldRotate) {
         rotables.forEach(rotatable => rotatable.rotation.z = time*0.3);
     }
-
+    if (shouldOrbit) {
+        for ( var i = 0; i < planets.length; i++ ) {
+            let speedFactor = 1 / (planets[i].geometry.boundingSphere.radius + orbits[i]);
+            planets[i].position.x = Math.sin(speedFactor * time) * orbits[i];
+            planets[i].position.y = Math.cos(speedFactor * time) * orbits[i];
+        }
+    }
     renderer.render(scene, camera);
     requestAnimationFrame(render);
 
@@ -191,7 +172,6 @@ requestAnimationFrame(render);
 //             function (object) {
 //                 object.position.x = 6;
 //                 object.scale.set(0.5, 0.5, 0.5);
-//                 objects.push(object);
 //                 solarSystem.add(object);
 //             },
 //             // called when loading is in progress
@@ -219,10 +199,6 @@ function AddNewPlanet(event) {
 
     let planet = newPlanet(newPlanetRadius, newPlanetColor, planetPosition);
     planet.position.set(planetPosition, 0, 0);
-    
-    // scene.add(planet);
-    solarSystem.add(planet);
-    objects.push(planet);
 }
 
 let showAxesCheckbox = document.getElementById('show-axes-helper');
@@ -234,7 +210,12 @@ function SetShowAxes() {
 
 let shouldRotateCheckbox = document.getElementById('should-rotate');
 shouldRotateCheckbox.addEventListener("click", SetShouldRotate, false);
-
 function SetShouldRotate() {
     shouldRotate = shouldRotateCheckbox.checked;    
+}
+
+let shouldOrbitCheckbox = document.getElementById('should-orbit');
+shouldOrbitCheckbox.addEventListener("click", SetShouldOrbit, false);
+function SetShouldOrbit() {
+    shouldOrbit = shouldOrbitCheckbox.checked;    
 }
