@@ -20,6 +20,7 @@ const scene = new THREE.Scene();
 let objects = [];
 
 const axesHelper = new THREE.AxesHelper( 5 );
+axesHelper.visible = false; // inicia escondido
 scene.add( axesHelper );
 
 // ambient light
@@ -215,4 +216,11 @@ function AddNewPlanet(event) {
     // scene.add(planet);
     solarSystem.add(planet);
     objects.push(planet);
+}
+
+let showAxesCheckbox = document.getElementById('show-axes-helper');
+showAxesCheckbox.addEventListener("click", SetShowAxes, false);
+
+function SetShowAxes() {
+    axesHelper.visible = showAxesCheckbox.checked;    
 }
