@@ -33,7 +33,7 @@ scene.add( axesHelper );
 var ambientLight = new THREE.AmbientLight ( 0xffffff, 0.5)
 scene.add( ambientLight )
 
-const lightIntensity = 1;
+const lightIntensity = 0.4;
 const light = newPointLight();
 
 function newPointLight() {
@@ -78,7 +78,7 @@ function newSun(radius, color) {
     const material = new THREE.MeshLambertMaterial( { 
         color: color,
         emissive: color, 
-        emissiveIntensity: lightIntensity,
+        emissiveIntensity: lightIntensity*2,
         emissiveMap: texture
     } );
     const sun = new THREE.Mesh( geometry, material );    
@@ -221,6 +221,7 @@ function getTexture() {
     let texture;
     if ( textureDiv.files && textureDiv.files[0] ) {
         texture = textureLoader.load( textureDiv.files[0].name );
+        texture.wrapS = THREE.RepeatWrapping;
     }
     return texture;
 }
