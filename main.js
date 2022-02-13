@@ -222,10 +222,10 @@ function AddNewPlanet(event) {
 }
 
 function getTexture() {
-    let textureDiv = document.getElementById("texture");
+    let fileName = document.getElementById("texture-selector").value;
     let texture;
-    if ( textureDiv.files && textureDiv.files[0] ) {
-        texture = textureLoader.load( textureDiv.files[0].name );
+    if ( fileName != "" ) {
+        texture = textureLoader.load( fileName );
         texture.wrapS = THREE.RepeatWrapping;
     }
     return texture;

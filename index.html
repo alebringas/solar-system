@@ -43,9 +43,15 @@
                         <label for="new-planet-color">Color:</label>
                         <input id="new-planet-color" type="color" value="#0000ff"/></button>
                     </div>
-                    <div class="control">
+                    <!-- <div class="control">
                         <label for="texture">Textura:</label>
                         <input id="texture" type="file" accept=".jpeg,.png,.jpg"/></div>
+                    </div> -->
+                    <div class="control"> Textura:
+                        <select id="texture-selector">
+                            <option value="">None</option>
+                            <option value="sun.png">Sun</option>
+                        </select>
                     </div>
                     <div class="control">
                         <button id="new-planet-submit" type="button"/>Crear planeta</button>
