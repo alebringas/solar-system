@@ -25,7 +25,9 @@ const scene = new THREE.Scene();
 let planets = [];
 let orbits = [];
 
-const axesHelper = new THREE.AxesHelper( 5 );
+const SUN_RADIUS = 5;
+
+const axesHelper = new THREE.AxesHelper( SUN_RADIUS + 3 );
 axesHelper.visible = false; // inicia escondido
 scene.add( axesHelper );
 
@@ -63,25 +65,27 @@ const solarSystem = new THREE.Object3D();
 scene.add(solarSystem);
 
 // TODO: glowy sun: https://stackoverflow.com/a/50958608 
-const sun = newSun(2, 0xffff00);
-systemRadius = 2;
+const sun = newSun(SUN_RADIUS);
+systemRadius = sun.geometry.boundingSphere.radius;
 solarSystem.add(sun);
 sun.add(light);
 
-const earth = newPlanet(1, 0x0000ff, 5);
-systemRadius = 5 + 1;
+let earthRadius = 2;
+const earth = newPlanet(1, 0x0000ff, systemRadius + earthRadius + 1);
 solarSystem.add(earth);
 
-function newSun(radius, color) {
+function newSun(radius) {
     let texture = textureLoader.load("sun.png");
     const geometry = new THREE.SphereGeometry(radius, 64, 64);
+    geometry.computeBoundingSphere();
     const material = new THREE.MeshLambertMaterial( { 
-        color: color,
-        emissive: color, 
+        emissive: 0xFFFFFF, 
         emissiveIntensity: lightIntensity*2,
-        emissiveMap: texture
+        emissiveMap: texture,
+        map: texture,
+        combine: THREE.AddOperation
     } );
-    const sun = new THREE.Mesh( geometry, material );    
+    const sun = new THREE.Mesh( geometry, material );  
     return sun;
 }
 
@@ -102,6 +106,7 @@ function newPlanet(radius, color, positionX, texture) {
     planets.push(planet);
     orbits.push(positionX);
     scene.add(planet);
+    systemRadius = positionX + radius;
     return planet;
 }
 
