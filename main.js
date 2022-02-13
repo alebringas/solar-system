@@ -92,12 +92,13 @@ function newSun(radius) {
 function newPlanet(radius, color, orbitRadius, texture) {
     const geometry = new THREE.SphereGeometry(radius, 64, 64);
     geometry.computeBoundingSphere();
-    const material = new THREE.MeshLambertMaterial( { color: color } );
-        
+    let parameters;    
     if (texture) {
-        material.map = texture;
-        material.combine = THREE.AddOperation;
+        parameters = {map: texture, combine: THREE.AddOperation};
+    } else {
+        parameters = {color: color};
     }
+    let material = new THREE.MeshLambertMaterial(parameters);
     
     const planet = new THREE.Mesh( geometry, material );    
     putIntoOrbit(planet, radius, orbitRadius);
