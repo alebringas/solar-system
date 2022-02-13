@@ -22,7 +22,6 @@ const camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.inner
 camera.position.z = 10;
 
 const scene = new THREE.Scene();
-let rotables = [];
 let planets = [];
 let orbits = [];
 
@@ -83,7 +82,6 @@ function newSun(radius, color) {
         emissiveMap: texture
     } );
     const sun = new THREE.Mesh( geometry, material );    
-    rotables.push(sun);
     return sun;
 }
 
@@ -103,7 +101,6 @@ function newPlanet(radius, color, positionX, texture) {
     planet.receiveShadow = true; 
     planets.push(planet);
     orbits.push(positionX);
-    rotables.push(planet);
     scene.add(planet);
     return planet;
 }
@@ -157,7 +154,8 @@ function render () {
     
     if (shouldRotate) {
         rotationTime += 0.1 * generalSpeed;
-        rotables.forEach(rotatable => rotatable.rotation.z = rotationTime*0.2);
+        sun.rotation.z = rotationTime*0.05;
+        planets.forEach(planet => planet.rotation.z = rotationTime*0.2);
     }
     if (shouldOrbit) {
         orbitTime += 0.05 * generalSpeed;
