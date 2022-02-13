@@ -6,11 +6,11 @@ import { OBJLoader } from 'https://cdn.skypack.dev/pin/three@v0.137.5-HJEdoVYPhj
 
 let orbitTime = 0;
 let rotationTime = 0;
-const canvas = document.querySelector('#scene-canvas');
-const renderer = new THREE.WebGLRenderer({canvas});
-renderer.shadowMap.enabled = true;
-renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-renderer.physicallyCorrectLights = true;
+const CANVAS = document.querySelector('#scene-canvas');
+const RENDERER = new THREE.WebGLRenderer({canvas: CANVAS});
+RENDERER.shadowMap.enabled = true;
+RENDERER.shadowMap.type = THREE.PCFSoftShadowMap;
+RENDERER.physicallyCorrectLights = true;
 let systemRadius = 0.0;
 let shouldRotate = true;
 let shouldOrbit = true;
@@ -18,8 +18,8 @@ let generalSpeed = 1;
 
 const textureLoader = new THREE.TextureLoader();
 
-const camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1000 );
-camera.position.z = 10;
+const CAMERA = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1000 );
+CAMERA.position.z = 10;
 
 const scene = new THREE.Scene();
 let planets = [];
@@ -50,7 +50,7 @@ function newPointLight() {
 
 // control de camara
 // *** Orbit
-const controls = new OrbitControls(camera, canvas);
+const controls = new OrbitControls(CAMERA, CANVAS);
 controls.target.set(0, 0, 0);
 controls.update();
 
@@ -157,10 +157,10 @@ function resizeRendererToDisplaySize(renderer) {
 
 function render () {
     
-    if (resizeRendererToDisplaySize(renderer)) {
-        const canvas = renderer.domElement;
-        camera.aspect = canvas.clientWidth / canvas.clientHeight;
-        camera.updateProjectionMatrix();
+    if (resizeRendererToDisplaySize(RENDERER)) {
+        const canvas = RENDERER.domElement;
+        CAMERA.aspect = canvas.clientWidth / canvas.clientHeight;
+        CAMERA.updateProjectionMatrix();
     }
     
     if (shouldRotate) {
@@ -174,7 +174,7 @@ function render () {
             putIntoOrbit(planets[i], planets[i].geometry.boundingSphere.radius, orbits[i]);
         }
     }
-    renderer.render(scene, camera);
+    RENDERER.render(scene, CAMERA);
     requestAnimationFrame(render);
 
 }
