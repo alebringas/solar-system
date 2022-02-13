@@ -16,6 +16,8 @@ let shouldRotate = true;
 let shouldOrbit = true;
 let generalSpeed = 1;
 
+const textureLoader = new THREE.TextureLoader();
+
 const camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1000 );
 camera.position.z = 10;
 
@@ -37,7 +39,7 @@ const light = newPointLight();
 
 function newPointLight() {
     const light = new THREE.PointLight( 0xffffff, 1);
-    light.power = 800*lightIntensity;
+    light.power = 200 * lightIntensity; // 800 l
     light.castShadow = true; 
 
     light.shadow.mapSize.width = 2048;
@@ -72,17 +74,28 @@ systemRadius = 5 + 1;
 solarSystem.add(earth);
 
 function newSun(radius, color) {
+    let texture = textureLoader.load("sun.png");
     const geometry = new THREE.SphereGeometry(radius, 64, 64);
-    const material = new THREE.MeshLambertMaterial( { color: color, emissive:color, emissiveIntensity: lightIntensity} );
+    const material = new THREE.MeshLambertMaterial( { 
+        color: color,
+        emissive: color, 
+        emissiveIntensity: lightIntensity,
+        emissiveMap: texture
+    } );
     const sun = new THREE.Mesh( geometry, material );    
     rotables.push(sun);
     return sun;
 }
 
-function newPlanet(radius, color, positionX) {
+function newPlanet(radius, color, positionX, texture) {
     const geometry = new THREE.SphereGeometry(radius, 64, 64);
     geometry.computeBoundingSphere();
-    const material = new THREE.MeshLambertMaterial( { color: color} );
+    const material = new THREE.MeshLambertMaterial( { color: color } );
+        
+    if (texture) {
+        material.map = texture;
+        material.combine = THREE.AddOperation;
+    }
     
     const planet = new THREE.Mesh( geometry, material );    
     planet.position.x = positionX;
@@ -194,14 +207,24 @@ let newPlanetSubmitButton = document.getElementById('new-planet-submit');
 newPlanetSubmitButton.addEventListener("click", AddNewPlanet, false);
 
 function AddNewPlanet(event) {
-    let newPlanetRadius = parseInt(document.getElementById("new-planet-radius").value);
-    let newPlanetColor = document.getElementById("new-planet-color").value;
+    let radius = parseInt(document.getElementById("new-planet-radius").value);
+    let color = document.getElementById("new-planet-color").value;
+    let texture = getTexture();
 
-    let planetPosition = systemRadius + 1.0 + newPlanetRadius;
-    systemRadius = planetPosition + newPlanetRadius;
+    let planetPosition = systemRadius + 1.0 + radius;
+    systemRadius = planetPosition + radius;
 
-    let planet = newPlanet(newPlanetRadius, newPlanetColor, planetPosition);
+    let planet = newPlanet(radius, color, planetPosition, texture);
     planet.position.set(planetPosition, 0, 0);
+}
+
+function getTexture() {
+    let textureDiv = document.getElementById("texture");
+    let texture;
+    if ( textureDiv.files && textureDiv.files[0] ) {
+        texture = textureLoader.load( textureDiv.files[0].name );
+    }
+    return texture;
 }
 
 let showAxesCheckbox = document.getElementById('show-axes-helper');
