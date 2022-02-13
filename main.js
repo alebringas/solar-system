@@ -25,6 +25,17 @@ const scene = new THREE.Scene();
 let planets = [];
 let orbits = [];
 
+setBackground();
+
+function setBackground() {
+    let spaceTexture = textureLoader.load("space.jpg");
+    let boxGeo = new THREE.BoxGeometry(100, 100, 100);
+    let spaceMaterial = new THREE.MeshBasicMaterial({map:spaceTexture});
+    spaceMaterial.side = THREE.BackSide;
+    let sceneBox = new THREE.Mesh(boxGeo, spaceMaterial);
+    scene.add(sceneBox);
+}
+
 const SUN_RADIUS = 5;
 
 const axesHelper = new THREE.AxesHelper( SUN_RADIUS + 3 );
