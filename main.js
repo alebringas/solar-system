@@ -89,7 +89,7 @@ function newSun(radius) {
     return sun;
 }
 
-function newPlanet(radius, color, positionX, texture) {
+function newPlanet(radius, color, orbitRadius, texture) {
     const geometry = new THREE.SphereGeometry(radius, 64, 64);
     geometry.computeBoundingSphere();
     const material = new THREE.MeshLambertMaterial( { color: color } );
@@ -100,16 +100,23 @@ function newPlanet(radius, color, positionX, texture) {
     }
     
     const planet = new THREE.Mesh( geometry, material );    
-    planet.position.x = positionX;
+    putIntoOrbit(planet, radius, orbitRadius);
+
     planet.castShadow = true;
     planet.receiveShadow = true; 
     planets.push(planet);
-    orbits.push(positionX);
+    orbits.push(orbitRadius);
     scene.add(planet);
-    systemRadius = positionX + radius;
+    systemRadius = orbitRadius + radius;
     return planet;
 }
 
+function putIntoOrbit(planet, radius, orbitRadius) {
+    let speedFactor = 1 / (radius + orbitRadius);
+    planet.position.x = Math.sin(speedFactor * orbitTime) * orbitRadius;
+    planet.position.y = Math.cos(speedFactor * orbitTime) * orbitRadius;
+}
+    
 
 // const curve = new THREE.EllipseCurve(
 // 	0.5,  0.5,            // ax, aY
@@ -134,8 +141,6 @@ function newPlanet(radius, color, positionX, texture) {
 //    event.object.position.set(mouseX,mouseY,event.object.position.y);
 //    renderer.render(scene, camera);  
 //})
-
-//window.addEventListener( 'resize', onWindowResize, false );
 
 
 function resizeRendererToDisplaySize(renderer) {
@@ -165,9 +170,7 @@ function render () {
     if (shouldOrbit) {
         orbitTime += 0.05 * generalSpeed;
         for ( var i = 0; i < planets.length; i++ ) {
-            let speedFactor = 1 / (planets[i].geometry.boundingSphere.radius + orbits[i]);
-            planets[i].position.x = Math.sin(speedFactor * orbitTime) * orbits[i];
-            planets[i].position.y = Math.cos(speedFactor * orbitTime) * orbits[i];
+            putIntoOrbit(planets[i], planets[i].geometry.boundingSphere.radius, orbits[i]);
         }
     }
     renderer.render(scene, camera);
@@ -213,12 +216,9 @@ function AddNewPlanet(event) {
     let radius = parseInt(document.getElementById("new-planet-radius").value);
     let color = document.getElementById("new-planet-color").value;
     let texture = getTexture();
-
     let planetPosition = systemRadius + 1.0 + radius;
-    systemRadius = planetPosition + radius;
 
-    let planet = newPlanet(radius, color, planetPosition, texture);
-    planet.position.set(planetPosition, 0, 0);
+    newPlanet(radius, color, planetPosition, texture);
 }
 
 function getTexture() {
