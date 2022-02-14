@@ -13,6 +13,9 @@
         </div>
         <div id="controls-div">
             <div id="controls">
+                <div class="control-group">Control de cámara:
+                    <p>Click izq.: rotar<br>Click der.: mover<br>Rueda: zoom</p>
+                </div>
                 <div class="control-group">
                     <div class="control">
                         <input type="checkbox" id="show-axes-helper">
@@ -26,8 +29,10 @@
                         <input type="checkbox" id="should-orbit" checked>
                         <label for="should-orbit">Traslación</label>
                     </div>
-                </div>
-                <div class="control-group">
+                    <div class="control">
+                        <input type="checkbox" id="special-sun">
+                        <label for="special-sun">Sol especial</label>
+                    </div>
                     <div class="control">
                         <label for="speed">Velocidad general</label>
                         <input type="range" id="speed" step="2" min="1" max="21" value="1">
@@ -59,12 +64,6 @@
                     </div>
                     <div class="control">
                         <button id="new-planet-submit" type="button"/>Crear planeta</button>
-                    </div>
-                </div>
-                <div class="control-group">
-                    <div class="control">
-                        <input type="checkbox" id="special-sun">
-                        <label for="special-sun">Sol especial</label>
                     </div>
                 </div>
                 <div class="control-group">Luminosidad:
