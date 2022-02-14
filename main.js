@@ -76,6 +76,9 @@ composer.setSize(window.innerWidth, window.innerHeight);
 composer.addPass( renderScene );
 composer.addPass( bloomPass );
 
+// Render scene
+requestAnimationFrame(render);
+
 // Add event listeners
 document.getElementById('new-planet-submit')
     .addEventListener("click", AddNewPlanet, false);
@@ -102,8 +105,6 @@ document.getElementById('bloom-threshold')
 document.getElementById('bloom-radius')
     .addEventListener("input", (event) => {bloomPass.radius = event.target.value;}, false);
 
-// Render scene
-requestAnimationFrame(render);
 
 // Functions
 function spaceCubeBackground(textureLoader, scene) {
