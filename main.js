@@ -88,7 +88,7 @@ const earth = newPlanet(1, 0x0000ff, systemRadius + earthRadius + 1);
 scene.add(earth);
 
 function newSun(radius) {
-    let texture = textureLoader.load("sunPOT.png");
+    let texture = textureLoader.load("./textures/sunPOT.png");
     texture.wrapS = THREE.RepeatWrapping;
     texture.wrapT = THREE.RepeatWrapping;
     texture.repeat.set(2,2);
@@ -174,7 +174,7 @@ function resizeRendererToDisplaySize(renderer) {
 
 const objLoader = new OBJLoader();
 
-let teapot = objLoader.load("teapot.obj", loadTeapotSun, onProgress, onError);
+let teapot = objLoader.load("./models/teapot.obj", loadTeapotSun, onProgress, onError);
 
 
 function onError( error ) {
@@ -219,6 +219,8 @@ function getTexture() {
     if ( fileName != "" ) {
         texture = textureLoader.load( fileName );
         texture.wrapS = THREE.RepeatWrapping;
+        texture.wrapT = THREE.RepeatWrapping;
+        texture.repeat.set(4,4);
     }
     return texture;
 }
