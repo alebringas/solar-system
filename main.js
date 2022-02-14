@@ -4,6 +4,10 @@ import { OrbitControls } from "https://cdn.skypack.dev/pin/three@v0.137.5-HJEdoV
 import { TrackballControls } from 'https://cdn.skypack.dev/pin/three@v0.137.5-HJEdoVYPhjkiJWkt6XIa/mode=imports,min/unoptimized/examples/jsm/controls/TrackballControls.js';
 import { OBJLoader } from 'https://cdn.skypack.dev/pin/three@v0.137.5-HJEdoVYPhjkiJWkt6XIa/mode=imports,min/unoptimized/examples/jsm/loaders/OBJLoader.js';
 
+import { EffectComposer } from 'https://cdn.skypack.dev/pin/three@v0.137.5-HJEdoVYPhjkiJWkt6XIa/mode=imports,min/unoptimized/examples/jsm/postprocessing/EffectComposer.js';
+import { RenderPass } from 'https://cdn.skypack.dev/pin/three@v0.137.5-HJEdoVYPhjkiJWkt6XIa/mode=imports,min/unoptimized/examples/jsm/postprocessing/RenderPass.js';
+import { UnrealBloomPass } from 'https://cdn.skypack.dev/pin/three@v0.137.5-HJEdoVYPhjkiJWkt6XIa/mode=imports,min/unoptimized/examples/jsm/postprocessing/UnrealBloomPass.js';
+
 let orbitTime = 0;
 let rotationTime = 0;
 const CANVAS = document.querySelector('#scene-canvas');
@@ -47,13 +51,13 @@ scene.add( axesHelper );
 var ambientLight = new THREE.AmbientLight ( 0xffffff, 0.5)
 scene.add( ambientLight )
 
-const lightIntensity = 0.4;
+const lightIntensity = 0.5 * document.getElementById('bloom-strength').value;
 const light = newPointLight();
 scene.add(light);
 
 function newPointLight() {
     const light = new THREE.PointLight( 0xffffff, 1);
-    light.power = 200 * lightIntensity; // 800 l
+    light.power = 300 * lightIntensity; // 800 l
     light.castShadow = true; 
 
     light.shadow.mapSize.width = 2048;
@@ -252,6 +256,33 @@ function ShowTeapot() {
     sun.visible = !shouldUseSpecialSun;
 }
 
+const bloom = {
+    exposure: 1,
+    bloomStrength: 0.4,
+    bloomThreshold: 0.1,
+    bloomRadius: 1.5
+};
+
+document.getElementById('bloom-strength')
+        .addEventListener("input", (event) => {bloomPass.strength = event.target.value;}, false);
+document.getElementById('bloom-threshold')
+        .addEventListener("input", (event) => {bloomPass.threshold = event.target.value;}, false);
+document.getElementById('bloom-radius')
+        .addEventListener("input", (event) => {bloomPass.radius = event.target.value;}, false);
+
+
+const renderScene = new RenderPass( scene, CAMERA );
+
+const bloomPass = new UnrealBloomPass( new THREE.Vector2( window.innerWidth, window.innerHeight ), 1.5, 0.4, 0.85 );
+bloomPass.threshold = bloom.bloomThreshold;
+bloomPass.strength = bloom.bloomStrength;
+bloomPass.radius = bloom.bloomRadius;
+
+const composer = new EffectComposer( RENDERER );
+composer.setSize(window.innerWidth, window.innerHeight);
+composer.addPass( renderScene );
+composer.addPass( bloomPass );
+
 function render () {
     
     if (resizeRendererToDisplaySize(RENDERER)) {
@@ -274,7 +305,11 @@ function render () {
             putIntoOrbit(planets[i], planets[i].geometry.boundingSphere.radius, orbits[i]);
         }
     }
-    RENDERER.render(scene, CAMERA);
+
+    // RENDERER.render(scene, CAMERA);
+
+
+    composer.render(scene, CAMERA);
     requestAnimationFrame(render);
 }
 requestAnimationFrame(render);

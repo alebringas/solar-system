@@ -43,14 +43,10 @@
                         <label for="new-planet-color">Color:</label>
                         <input id="new-planet-color" type="color" value="#0000ff"/></button>
                     </div>
-                    <!-- <div class="control">
-                        <label for="texture">Textura:</label>
-                        <input id="texture" type="file" accept=".jpeg,.png,.jpg"/></div>
-                    </div> -->
                     <div class="control"> Textura:
                         <select id="texture-selector">
                             <option value="">None</option>
-                            <option value="sun.png">Sun</option>
+                            <option value="sunPOT.png">Sun</option>
                         </select>
                     </div>
                     <div class="control">
@@ -61,6 +57,24 @@
                     <div class="control">
                         <input type="checkbox" id="special-sun">
                         <label for="special-sun">Sol especial</label>
+                    </div>
+                </div>
+                <div class="control-group">Resolana:
+                    <!-- <div class="control"> 
+                        <input type="range" id="exposure" step="0.1" min="0" max="1" value="1">
+                        <label for="exposure">Exposición</label>
+                    </div> -->
+                    <div class="control"> 
+                        <label for="bloom-strength">Intensidad</label>
+                        <input type="range" id="bloom-strength" step="0.1" min="0" max="4" value="1">
+                    </div>
+                    <div class="control"> 
+                        <label for="bloom-threshold">Umbral</label>
+                        <input type="range" id="bloom-threshold" step="0.1" min="0" max="1" value="1">
+                    </div>
+                    <div class="control"> 
+                        <label for="bloom-radius">Radio</label>
+                        <input type="range" id="bloom-radius" step="0.1" min="0" max="2" value="1">
                     </div>
                 </div>
             </div>
