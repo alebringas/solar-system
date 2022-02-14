@@ -51,7 +51,7 @@ scene.add( axesHelper );
 var ambientLight = new THREE.AmbientLight ( 0xffffff, 0.5)
 scene.add( ambientLight )
 
-const lightIntensity = 0.5 * document.getElementById('bloom-strength').value;
+const lightIntensity = 0.8;
 const light = newPointLight();
 scene.add(light);
 
@@ -96,7 +96,7 @@ function newSun(radius) {
     geometry.computeBoundingSphere();
     const material = new THREE.MeshLambertMaterial( { 
         emissive: 0xFFFFFF, 
-        emissiveIntensity: lightIntensity*2,
+        emissiveIntensity: lightIntensity*1.3,
         emissiveMap: texture,
         map: texture,
         combine: THREE.AddOperation
@@ -257,10 +257,9 @@ function ShowTeapot() {
 }
 
 const bloom = {
-    exposure: 1,
-    bloomStrength: 0.4,
-    bloomThreshold: 0.1,
-    bloomRadius: 1.5
+    bloomStrength: 1,
+    bloomThreshold: 0.3,
+    bloomRadius: 0.4
 };
 
 document.getElementById('bloom-strength')
@@ -294,10 +293,10 @@ function render () {
     if (shouldRotate) {
         rotationTime += 0.1 * generalSpeed;
         if (teapot) {
-            teapot.rotation.y = rotationTime*0.05;
+            teapot.rotation.y = -1 * rotationTime*0.05;
         }
-        sun.rotation.z = rotationTime*0.05;
-        planets.forEach(planet => planet.rotation.z = rotationTime*0.2);
+        sun.rotation.z = -1 * rotationTime*0.05;
+        planets.forEach(planet => planet.rotation.z = -1 * rotationTime*0.2);
     }
     if (shouldOrbit) {
         orbitTime += 0.05 * generalSpeed;
