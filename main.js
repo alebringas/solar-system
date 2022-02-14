@@ -31,7 +31,7 @@ let planets = [];
 let orbits = [];
 
 setBackground();
-
+scene.background = textureLoader.load("./textures/alf.jpg");
 function setBackground() {
     let spaceTexture = textureLoader.load("./textures/space.jpg");
     let boxGeo = new THREE.BoxGeometry(100, 100, 100);
