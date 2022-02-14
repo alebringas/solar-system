@@ -33,7 +33,7 @@ let orbits = [];
 setBackground();
 
 function setBackground() {
-    let spaceTexture = textureLoader.load("space.jpg");
+    let spaceTexture = textureLoader.load("./textures/space.jpg");
     let boxGeo = new THREE.BoxGeometry(100, 100, 100);
     let spaceMaterial = new THREE.MeshBasicMaterial({map:spaceTexture});
     spaceMaterial.side = THREE.BackSide;
@@ -68,7 +68,6 @@ function newPointLight() {
 // control de camara
 // *** Orbit
 const controls = new OrbitControls(CAMERA, CANVAS);
-controls.target.set(0, 0, 0);
 controls.update();
 
 // *** Trackball
