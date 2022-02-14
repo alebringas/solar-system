@@ -14,6 +14,7 @@ RENDERER.physicallyCorrectLights = true;
 let systemRadius = 0.0;
 let shouldRotate = true;
 let shouldOrbit = true;
+let shouldUseSpecialSun = false;
 let generalSpeed = 1;
 
 const textureLoader = new THREE.TextureLoader();
@@ -48,6 +49,7 @@ scene.add( ambientLight )
 
 const lightIntensity = 0.4;
 const light = newPointLight();
+scene.add(light);
 
 function newPointLight() {
     const light = new THREE.PointLight( 0xffffff, 1);
@@ -72,21 +74,20 @@ controls.update();
 // controls.panSpeed = 0.8;
 // controls.keys = [ 'KeyA', 'KeyS', 'KeyD' ];
 
-const solarSystem = new THREE.Object3D();
-scene.add(solarSystem);
-
 // TODO: glowy sun: https://stackoverflow.com/a/50958608 
 const sun = newSun(SUN_RADIUS);
 systemRadius = sun.geometry.boundingSphere.radius;
-solarSystem.add(sun);
-sun.add(light);
+scene.add(sun);
 
 let earthRadius = 2;
 const earth = newPlanet(1, 0x0000ff, systemRadius + earthRadius + 1);
-solarSystem.add(earth);
+scene.add(earth);
 
 function newSun(radius) {
-    let texture = textureLoader.load("sun.png");
+    let texture = textureLoader.load("sunPOT.png");
+    texture.wrapS = THREE.RepeatWrapping;
+    texture.wrapT = THREE.RepeatWrapping;
+    texture.repeat.set(2,2);
     const geometry = new THREE.SphereGeometry(radius, 64, 64);
     geometry.computeBoundingSphere();
     const material = new THREE.MeshLambertMaterial( { 
@@ -96,6 +97,7 @@ function newSun(radius) {
         map: texture,
         combine: THREE.AddOperation
     } );
+    material.side = THREE.FrontSide;
     const sun = new THREE.Mesh( geometry, material );  
     return sun;
 }
@@ -166,60 +168,34 @@ function resizeRendererToDisplaySize(renderer) {
     return needResize;
 }
 
-function render () {
-    
-    if (resizeRendererToDisplaySize(RENDERER)) {
-        const canvas = RENDERER.domElement;
-        CAMERA.aspect = canvas.clientWidth / canvas.clientHeight;
-        CAMERA.updateProjectionMatrix();
-    }
-    
-    if (shouldRotate) {
-        rotationTime += 0.1 * generalSpeed;
-        sun.rotation.z = rotationTime*0.05;
-        planets.forEach(planet => planet.rotation.z = rotationTime*0.2);
-    }
-    if (shouldOrbit) {
-        orbitTime += 0.05 * generalSpeed;
-        for ( var i = 0; i < planets.length; i++ ) {
-            putIntoOrbit(planets[i], planets[i].geometry.boundingSphere.radius, orbits[i]);
-        }
-    }
-    RENDERER.render(scene, CAMERA);
-    requestAnimationFrame(render);
+const objLoader = new OBJLoader();
 
+let teapot = objLoader.load("teapot.obj", loadTeapotSun, onProgress, onError);
+
+
+function onError( error ) {
+    console.log( 'An error happened' );
 }
-requestAnimationFrame(render);
+function onProgress ( xhr ) {
+    console.log( ( xhr.loaded / xhr.total * 100 ) + '% loaded' );
+}
 
-
-// let modelLoadDiv = document.getElementById('obj');
-// modelLoadDiv.addEventListener("change", LoadObj, false );
-
-// const objLoader = new OBJLoader();
-
-// function LoadObj( event ) {
-    
-//     if ( modelLoadDiv.files && modelLoadDiv.files[0] ) {
-//         objLoader.load(
-//             modelLoadDiv.files[0].name,
-//             // called when object is loaded
-//             function (object) {
-//                 object.position.x = 6;
-//                 object.scale.set(0.5, 0.5, 0.5);
-//                 solarSystem.add(object);
-//             },
-//             // called when loading is in progress
-//             function ( xhr ) {
-//                 console.log( ( xhr.loaded / xhr.total * 100 ) + '% loaded' );
-//             },
-//             // called when loading has errors
-//             function ( error ) {
-//                 console.log( 'An error happened' );
-//             }
-//         );
-//     }
-// }
-
+function loadTeapotSun(teapotOBJ) {
+    teapotOBJ.traverse( function (child) {
+                        if ( child instanceof THREE.Mesh ) {
+                            child.material = sun.material;
+                            child.material.side = THREE.DoubleSide;
+                            child.scale.set(0.5,0.5,0.5);
+                            child.geometry.boundingSphere = sun.geometry.boundingSphere;
+                        }
+                    });
+    teapot = teapotOBJ;
+    teapot.position.z = -3;
+    teapot = teapot.rotateOnAxis(new THREE.Vector3(1, 0, 0), Math.PI/2);
+    teapot = teapot.rotateOnAxis(new THREE.Vector3(0, 1, 0), Math.PI/2);
+    teapot.visible = false;
+    scene.add(teapotOBJ);
+}
 
 let newPlanetSubmitButton = document.getElementById('new-planet-submit');
 newPlanetSubmitButton.addEventListener("click", AddNewPlanet, false);
@@ -267,3 +243,38 @@ speedRangeDiv.addEventListener("input", SetSpeed, false);
 function SetSpeed() {
     generalSpeed = speedRangeDiv.value;
 }
+
+let specialSunDiv = document.getElementById('special-sun');
+specialSunDiv.addEventListener("click", ShowTeapot, false);
+function ShowTeapot() {
+    shouldUseSpecialSun = specialSunDiv.checked;
+    teapot.visible = shouldUseSpecialSun;
+    sun.visible = !shouldUseSpecialSun;
+}
+
+function render () {
+    
+    if (resizeRendererToDisplaySize(RENDERER)) {
+        const canvas = RENDERER.domElement;
+        CAMERA.aspect = canvas.clientWidth / canvas.clientHeight;
+        CAMERA.updateProjectionMatrix();
+    }
+    
+    if (shouldRotate) {
+        rotationTime += 0.1 * generalSpeed;
+        if (teapot) {
+            teapot.rotation.y = rotationTime*0.05;
+        }
+        sun.rotation.z = rotationTime*0.05;
+        planets.forEach(planet => planet.rotation.z = rotationTime*0.2);
+    }
+    if (shouldOrbit) {
+        orbitTime += 0.05 * generalSpeed;
+        for ( var i = 0; i < planets.length; i++ ) {
+            putIntoOrbit(planets[i], planets[i].geometry.boundingSphere.radius, orbits[i]);
+        }
+    }
+    RENDERER.render(scene, CAMERA);
+    requestAnimationFrame(render);
+}
+requestAnimationFrame(render);
