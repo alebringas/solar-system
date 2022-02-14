@@ -1,38 +1,112 @@
 import * as THREE from "https://cdn.skypack.dev/pin/three@v0.137.5-HJEdoVYPhjkiJWkt6XIa/mode=imports,min/optimized/three.js";
-import { DragControls } from "https://cdn.skypack.dev/pin/three@v0.137.5-HJEdoVYPhjkiJWkt6XIa/mode=imports,min/unoptimized/examples/jsm/controls/DragControls.js";
 import { OrbitControls } from "https://cdn.skypack.dev/pin/three@v0.137.5-HJEdoVYPhjkiJWkt6XIa/mode=imports,min/unoptimized/examples/jsm/controls/OrbitControls.js";
-import { TrackballControls } from 'https://cdn.skypack.dev/pin/three@v0.137.5-HJEdoVYPhjkiJWkt6XIa/mode=imports,min/unoptimized/examples/jsm/controls/TrackballControls.js';
 import { OBJLoader } from 'https://cdn.skypack.dev/pin/three@v0.137.5-HJEdoVYPhjkiJWkt6XIa/mode=imports,min/unoptimized/examples/jsm/loaders/OBJLoader.js';
 
 import { EffectComposer } from 'https://cdn.skypack.dev/pin/three@v0.137.5-HJEdoVYPhjkiJWkt6XIa/mode=imports,min/unoptimized/examples/jsm/postprocessing/EffectComposer.js';
 import { RenderPass } from 'https://cdn.skypack.dev/pin/three@v0.137.5-HJEdoVYPhjkiJWkt6XIa/mode=imports,min/unoptimized/examples/jsm/postprocessing/RenderPass.js';
 import { UnrealBloomPass } from 'https://cdn.skypack.dev/pin/three@v0.137.5-HJEdoVYPhjkiJWkt6XIa/mode=imports,min/unoptimized/examples/jsm/postprocessing/UnrealBloomPass.js';
 
+// Useful variables
 let orbitTime = 0;
 let rotationTime = 0;
+let systemRadius = 0.0;
+let generalSpeed = 1;
+const SUN_RADIUS = 5;
+const lightIntensity = 0.8;
+
+let planets = [];
+let orbits = [];
+
+let shouldRotate = true;
+let shouldOrbit = true;
+let shouldUseSpecialSun = false;
+
+
+// Init elements for scene
 const CANVAS = document.querySelector('#scene-canvas');
+
 const RENDERER = new THREE.WebGLRenderer({canvas: CANVAS});
 RENDERER.shadowMap.enabled = true;
 RENDERER.shadowMap.type = THREE.PCFSoftShadowMap;
 RENDERER.physicallyCorrectLights = true;
-let systemRadius = 0.0;
-let shouldRotate = true;
-let shouldOrbit = true;
-let shouldUseSpecialSun = false;
-let generalSpeed = 1;
-
-const textureLoader = new THREE.TextureLoader();
 
 const CAMERA = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1000 );
-CAMERA.position.z = 10;
+CAMERA.position.z = 15;
 
 const scene = new THREE.Scene();
-let planets = [];
-let orbits = [];
 
-setBackground();
+const textureLoader = new THREE.TextureLoader();
+const objLoader = new OBJLoader();
+
+const axesHelper = new THREE.AxesHelper( SUN_RADIUS + 3 );
+axesHelper.visible = false; // init: hidden
+scene.add( axesHelper );
+
+var ambientLight = new THREE.AmbientLight ( 0xffffff, 0.5)
+scene.add( ambientLight )
+
+const light = newPointLight();
+scene.add(light);
+
+// Camera control
+const controls = new OrbitControls(CAMERA, CANVAS);
+controls.update();
+
+// Set background
+spaceCubeBackground(textureLoader, scene);
 scene.background = textureLoader.load("./textures/alf.jpg");
-function setBackground() {
+
+// Add sun and load teapot
+const sun = newSun(SUN_RADIUS);
+let teapot = objLoader.load("./models/teapot.obj", loadTeapotSun, onProgress, onError);
+
+// Post-proccesing (glow effect)
+const renderScene = new RenderPass( scene, CAMERA );
+
+const bloom = {
+    strength: 1,
+    threshold: 0.3,
+    radius: 0.4
+};
+const bloomPass = new UnrealBloomPass( new THREE.Vector2( window.innerWidth, window.innerHeight ), 
+                                        bloom.strength, bloom.radius, bloom.threshold );
+
+const composer = new EffectComposer( RENDERER );
+composer.setSize(window.innerWidth, window.innerHeight);
+composer.addPass( renderScene );
+composer.addPass( bloomPass );
+
+// Add event listeners
+document.getElementById('new-planet-submit')
+    .addEventListener("click", AddNewPlanet, false);
+
+document.getElementById('show-axes-helper')
+    .addEventListener("click", (event) => {axesHelper.visible = event.target.checked}, false);
+
+document.getElementById('should-rotate')
+    .addEventListener("click", (event) => {shouldRotate = event.target.checked}, false);
+
+document.getElementById('should-orbit')
+    .addEventListener("click", (event) => {shouldOrbit = event.target.checked}, false);
+
+document.getElementById('speed')
+    .addEventListener("input", (event) => {generalSpeed = event.target.value}, false);
+
+document.getElementById('special-sun')
+    .addEventListener("click", ShowTeapot, false);
+
+document.getElementById('bloom-strength')
+    .addEventListener("input", (event) => {bloomPass.strength = event.target.value;}, false);
+document.getElementById('bloom-threshold')
+    .addEventListener("input", (event) => {bloomPass.threshold = event.target.value;}, false);
+document.getElementById('bloom-radius')
+    .addEventListener("input", (event) => {bloomPass.radius = event.target.value;}, false);
+
+// Render scene
+requestAnimationFrame(render);
+
+// Functions
+function spaceCubeBackground(textureLoader, scene) {
     let spaceTexture = textureLoader.load("./textures/space.jpg");
     let boxGeo = new THREE.BoxGeometry(100, 100, 100);
     let spaceMaterial = new THREE.MeshBasicMaterial({map:spaceTexture});
@@ -41,50 +115,15 @@ function setBackground() {
     scene.add(sceneBox);
 }
 
-const SUN_RADIUS = 5;
-
-const axesHelper = new THREE.AxesHelper( SUN_RADIUS + 3 );
-axesHelper.visible = false; // inicia escondido
-scene.add( axesHelper );
-
-// ambient light
-var ambientLight = new THREE.AmbientLight ( 0xffffff, 0.5)
-scene.add( ambientLight )
-
-const lightIntensity = 0.8;
-const light = newPointLight();
-scene.add(light);
-
 function newPointLight() {
     const light = new THREE.PointLight( 0xffffff, 1);
-    light.power = 300 * lightIntensity; // 800 l
+    light.power = 300 * lightIntensity; 
     light.castShadow = true; 
 
     light.shadow.mapSize.width = 2048;
     light.shadow.mapSize.height = 2048;
     return light;
 }
-
-// control de camara
-// *** Orbit
-const controls = new OrbitControls(CAMERA, CANVAS);
-controls.update();
-
-// *** Trackball
-// const controls = new TrackballControls( camera, canvas );
-// controls.rotateSpeed = 1.0;
-// controls.zoomSpeed = 1.2;
-// controls.panSpeed = 0.8;
-// controls.keys = [ 'KeyA', 'KeyS', 'KeyD' ];
-
-// TODO: glowy sun: https://stackoverflow.com/a/50958608 
-const sun = newSun(SUN_RADIUS);
-systemRadius = sun.geometry.boundingSphere.radius;
-scene.add(sun);
-
-let earthRadius = 2;
-const earth = newPlanet(1, 0x0000ff, systemRadius + earthRadius + 1);
-scene.add(earth);
 
 function newSun(radius) {
     let texture = textureLoader.load("./textures/sunPOT.png");
@@ -101,7 +140,10 @@ function newSun(radius) {
         combine: THREE.AddOperation
     } );
     material.side = THREE.FrontSide;
-    const sun = new THREE.Mesh( geometry, material );  
+    systemRadius = radius;
+    const sun = new THREE.Mesh( geometry, material );
+    scene.add(sun);
+
     return sun;
 }
 
@@ -133,52 +175,11 @@ function putIntoOrbit(planet, radius, orbitRadius) {
     planet.position.x = Math.sin(speedFactor * orbitTime) * orbitRadius;
     planet.position.y = Math.cos(speedFactor * orbitTime) * orbitRadius;
 }
-    
-
-// const curve = new THREE.EllipseCurve(
-// 	0.5,  0.5,            // ax, aY
-// 	3, 5,           // xRadius, yRadius
-// 	0,  2 * Math.PI,  // aStartAngle, aEndAngle
-// 	false,            // aClockwise
-// 	180                 // aRotation
-// );
-
-// const points = curve.getPoints( 50 );
-// const ellgeometry = new THREE.BufferGeometry().setFromPoints( points );
-
-// const ellmaterial = new THREE.LineBasicMaterial( { color : 0xff0000 } );
-
-// // Create the final object to add to the scene
-// const ellipse = new THREE.Line( ellgeometry, ellmaterial );
-// scene.add(ellipse);
-
-
-//const controls = new DragControls([sun, earth], camera, renderer.domElement);
-//controls.addEventListener("drag", function(event) {
-//    event.object.position.set(mouseX,mouseY,event.object.position.y);
-//    renderer.render(scene, camera);  
-//})
-
-
-function resizeRendererToDisplaySize(renderer) {
-    const canvas = renderer.domElement;
-    const width = canvas.clientWidth;
-    const height = canvas.clientHeight;
-    const needResize = canvas.width !== width || canvas.height !== height;
-    if (needResize) {
-        renderer.setSize(width, height, false);
-    }
-    return needResize;
-}
-
-const objLoader = new OBJLoader();
-
-let teapot = objLoader.load("./models/teapot.obj", loadTeapotSun, onProgress, onError);
-
 
 function onError( error ) {
     console.log( 'An error happened' );
 }
+
 function onProgress ( xhr ) {
     console.log( ( xhr.loaded / xhr.total * 100 ) + '% loaded' );
 }
@@ -197,11 +198,8 @@ function loadTeapotSun(teapotOBJ) {
     teapot = teapot.rotateOnAxis(new THREE.Vector3(1, 0, 0), Math.PI/2);
     teapot = teapot.rotateOnAxis(new THREE.Vector3(0, 1, 0), Math.PI/2);
     teapot.visible = false;
-    scene.add(teapotOBJ);
+    scene.add(teapot);
 }
-
-let newPlanetSubmitButton = document.getElementById('new-planet-submit');
-newPlanetSubmitButton.addEventListener("click", AddNewPlanet, false);
 
 function AddNewPlanet(event) {
     let radius = parseInt(document.getElementById("new-planet-radius").value);
@@ -224,64 +222,22 @@ function getTexture() {
     return texture;
 }
 
-let showAxesCheckbox = document.getElementById('show-axes-helper');
-showAxesCheckbox.addEventListener("click", SetShowAxes, false);
-
-function SetShowAxes() {
-    axesHelper.visible = showAxesCheckbox.checked;    
-}
-
-let shouldRotateCheckbox = document.getElementById('should-rotate');
-shouldRotateCheckbox.addEventListener("click", SetShouldRotate, false);
-function SetShouldRotate() {
-    shouldRotate = shouldRotateCheckbox.checked;    
-}
-
-let shouldOrbitCheckbox = document.getElementById('should-orbit');
-shouldOrbitCheckbox.addEventListener("click", SetShouldOrbit, false);
-function SetShouldOrbit() {
-    shouldOrbit = shouldOrbitCheckbox.checked;
-}
-
-let speedRangeDiv = document.getElementById('speed');
-speedRangeDiv.addEventListener("input", SetSpeed, false);
-function SetSpeed() {
-    generalSpeed = speedRangeDiv.value;
-}
-
-let specialSunDiv = document.getElementById('special-sun');
-specialSunDiv.addEventListener("click", ShowTeapot, false);
-function ShowTeapot() {
-    shouldUseSpecialSun = specialSunDiv.checked;
+function ShowTeapot(event) {
+    shouldUseSpecialSun = event.target.checked;
     teapot.visible = shouldUseSpecialSun;
     sun.visible = !shouldUseSpecialSun;
 }
 
-const bloom = {
-    bloomStrength: 1,
-    bloomThreshold: 0.3,
-    bloomRadius: 0.4
-};
-
-document.getElementById('bloom-strength')
-        .addEventListener("input", (event) => {bloomPass.strength = event.target.value;}, false);
-document.getElementById('bloom-threshold')
-        .addEventListener("input", (event) => {bloomPass.threshold = event.target.value;}, false);
-document.getElementById('bloom-radius')
-        .addEventListener("input", (event) => {bloomPass.radius = event.target.value;}, false);
-
-
-const renderScene = new RenderPass( scene, CAMERA );
-
-const bloomPass = new UnrealBloomPass( new THREE.Vector2( window.innerWidth, window.innerHeight ), 1.5, 0.4, 0.85 );
-bloomPass.threshold = bloom.bloomThreshold;
-bloomPass.strength = bloom.bloomStrength;
-bloomPass.radius = bloom.bloomRadius;
-
-const composer = new EffectComposer( RENDERER );
-composer.setSize(window.innerWidth, window.innerHeight);
-composer.addPass( renderScene );
-composer.addPass( bloomPass );
+function resizeRendererToDisplaySize(renderer) {
+    const canvas = renderer.domElement;
+    const width = canvas.clientWidth;
+    const height = canvas.clientHeight;
+    const needResize = canvas.width !== width || canvas.height !== height;
+    if (needResize) {
+        renderer.setSize(width, height, false);
+    }
+    return needResize;
+}
 
 function render () {
     
@@ -305,11 +261,6 @@ function render () {
             putIntoOrbit(planets[i], planets[i].geometry.boundingSphere.radius, orbits[i]);
         }
     }
-
-    // RENDERER.render(scene, CAMERA);
-
-
     composer.render(scene, CAMERA);
     requestAnimationFrame(render);
 }
-requestAnimationFrame(render);
